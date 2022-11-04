@@ -1,0 +1,19 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    //
+    // Huge thank you to @LarryRuane for the config and showing me how to set this up
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "echo",
+            "type": "shell",
+            "command": "echo Hello"
+        },
+        {
+            "label": "precleanup",
+            "type": "shell",
+            "command": "rm -rf /tmp/btest"
+        }
+    ]
+}

@@ -1,0 +1,29 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    //
+    // Huge thank you to @LarryRuane for the config and showing me how to set this up
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--nocleanup",
+                "--tmpdir=/tmp/btest",
+                "--portseed=1",
+                "--timeout-factor",
+                "0",
+                "--loglevel",
+                "DEBUG"
+            ],
+            "preLaunchTask": "precleanup"
+        }
+    ]
+}
