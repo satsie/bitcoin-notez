@@ -66,6 +66,84 @@ stickies-v [tested the bug fix manually](https://github.com/bitcoin/bitcoin/pull
 
 ***Impact:*** the wrong timestamps appear in CNodeState::m_last_block_announcement which can ultimately lead to the wrong peer selected for eviction
 
+# Proposal for test coverage
 
+Create a new `p2p_outound_eviction.py` file with a test to make sure a peer that recently sent us a new block doesn’t get evicted.
 
+If we reverse Larry’s bug fix, we should be able to see the incorrect behavior: the peer that recently sent the new block is the one to be evicted.
 
+***Note:***
+Outbound eviction logic is in the `denialofservice_tests.cpp` unit tests, which mocks the change to `m_last_block_announcement` by calling `net_processing.cpp`’s test-only `UpdateLastBlockAnnounceTime()` so it would not have caught this. [[source](https://github.com/bitcoin/bitcoin/pull/26172#pullrequestreview-1122282823)]
+
+### The plan
+
+1. Connect to the max number of outbound peers (8)
+2. Have a peer send a new block
+3. [optional - this would help show the behavior of the bug that Larry fixed] Have the rest of the peers send the same block (header)
+4. Bring in another connection. Make sure the peer that sent the new block doesn’t get evicted.
+
+Reversing Larry’s PR should fail the test. 
+
+### My code
+This is as far as I got. Diff includes log statements for debugging.
+
+https://github.com/bitcoin/bitcoin/compare/master...satsie:bitcoin:test_received_new_header_fix2
+
+# The unsolved part (aka where I got stuck)
+
+The biggest challenge seems to be adding that 9th outbound peer, which is a prerequisite to outbound peer eviction. Using the `addconnection` RPC, returns the following error:
+
+`Already at capacity for specified connection type` [[source code](https://github.com/bitcoin/bitcoin/blob/v24.0rc2/src/net.cpp#L1049)]
+
+I tracked down the other places where `CConman::OpenNetworkConnection()` (`net.cpp`) is invoked, and it appears you can also add outbound connections on startup (`ThreadOpenConnections()`). Even if that did work, and I was able to get enough to trigger eviction, I’m not sure if it would allow me to test the scenario I’m trying to cover.
+
+`OpenNetworkConnection()` is also called for onetry connections but I don’t think those are long lasting, or long lasting _enough_ for what I am trying to test.
+
+## The stale tip check
+
+After further investigation, it was brought to my attention that the node needs to have a stale tip to pass a check in `PeerManagerImpl::CheckForStaleTipAndEvictPeers()`(`net_processing.cpp`):
+
+```cpp
+    if (now > m_stale_tip_check_time) {
+        // Check whether our tip is stale, and if so, allow using an extra
+        // outbound peer
+        if (!fImporting && !fReindex && m_connman.GetNetworkActive() && m_connman.GetUseAddrmanOutgoing() && TipMayBeStale()) {
+            LogPrintf("Potential stale tip detected, will try using extra outbound peer (last tip update: %d seconds ago)\n",
+                      count_seconds(now - m_last_tip_update.load()));
+            m_connman.SetTryNewOutboundPeer(true);
+        } else if ...
+```
+[[source code](https://github.com/satsie/bitcoin/blob/9d58d84c6fc0489ecdd2d9af6d81b2143ab5b7c7/src/net_processing.cpp#L5109)]
+
+I was able to overcome this by adding the following to my functional test:
+
+```python
+        self.log.info("advancing time by 11 min to make the tip stale")
+        now = int(time.time())
+        eleven_min = 11 * 60
+        node.setmocktime(now + eleven_min)
+```
+
+However, even with that, the 9th peer still cannot be added. This is because the `m_connman.GetUseAddrmanOutgoing()` check in `PeerManagerImpl::CheckForStaleTipAndEvictPeers()` evaluates to false. As a result, `m_conman.SetTryNewOutboundPeer(true)` is never executed and the 9th peer is never added.
+
+Larry explained that the extra peer has to come from the addrman, and the test framework doesn't provide a way to connect to it.
+
+# Additional ideas
+
+Larry thought of an additional way to test:
+
+- Instead of having the functional test perform an actual eviction, we add a new field to the output of the `getpeerinfo` RPC that corresponds to the `CNodeState::m_last_block_announcement` timestamp. [Here's similar code](https://github.com/bitcoin/bitcoin/blob/v24.0rc4/src/rpc/net.cpp#L206) that populates the `last_block` with `m_last_block_time`. This wouldn't test as much as we were hoping, but would test the bug fix in a very narrow way and may still be worth implementing. 
+
+# Appendix: Developer workflow
+
+After each set of changes, run `make` to recompile.
+
+It's possible to configure VSCode to debug the Python tests, see these [config files](https://github.com/satsie/bitcoin-notez/tree/master/bitcoin-core-development/vscode).
+
+To tail the test node logs: `tail -f /tmp/btest/node0/regtest/debug.log`
+
+To remove the test directory if post test cleanup fails: `rm -rf /tmp/btest`
+
+To use Larry's ftcli tool to run RPC commands against the test node, navigate to the bitcoin directory and run: `~/bin/ftcli 0 getpeerinfo`
+
+If not using VSCode, the other way to debug is by dropping pdb breakpoints, pausing, and examining the test node (bitcoind) logs.
