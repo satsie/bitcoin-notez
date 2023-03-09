@@ -72,7 +72,7 @@ When used with the `-p` flag, `git add` will open up an interactive flow where i
 
 `git add -p $filename`
 
-<TODO insert screenshot of what this looks like>
+![](https://github.com/satsie/bitcoin-notez/blob/master/bitcoin-core-development/images/git-add-hunk.png)
 
 Depending on the code, you may even be able to split hunks! When prompted, use the `s` command. Use `git add --help` to learn more about the other options you can use in this interactive mode:
   
