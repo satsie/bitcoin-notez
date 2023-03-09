@@ -1,3 +1,9 @@
+# Hunks not chunks!
+
+_A friendly guide to git for newcomers in Bitcoin Core_
+
+-------
+
 It's no secret that Bitcoin Core has extremely high development standards, and git is no exception. Contributions are expected to have clean, thoughtful commit histories with clear messages.
 
 Of course, this is something that is far easier said than done, especially after multiple rounds of feedback.
@@ -14,15 +20,33 @@ You can then pipe this through `wc` to count the number of commits:
 
     git log --oneline master.. | wc -l
 
-To view all the code that has been staged:
+To view all code that has been staged:
 
     git diff --staged
+    
+To create a patch from uncommitted changes (a good way to back up your code!):
+
+    git diff > my_patch_name.patch
+
+To stash changes in your working directory (this is helpful if you want to do some rebasing but are getting conflicts)
+
+    git stash
+
+To pop the stashed code back into the working directory
+
+    git stash pop
+    
+To force push (use this after rebases):
+
+    git push -f
 
 ## Links
 
 [Guidelines for how to format commit messages](https://github.com/bitcoin/bitcoin/blob/master/CONTRIBUTING.md#committing-patches) (from the Bitcoin Core Developer Docs)
 
-## Cleaning up your commit history
+# Changing commit history
+
+## Completely redoing commit history
 
 ### Deep Dive
 Once you've finished a feature, you'll probably want to go back and clean up the commit history. One way to do this is and popping all your commits off so you can start fresh and rebuild the history one commit at a time. To do this you first need to count the number of commits your branch has (git log --oneline master.. | wc -l). Once you have that, you can run:
@@ -77,7 +101,7 @@ Here's a workflow you can use to create a totally new branch for the sole purpos
 4. Flatten all the commits into one: Count the number of commits (`git log --oneline master.. | wc -l`), then pop them off, sending the code back to the working directory: `git reset HEAD~$number_of_commits`. Finish off the process by creating one commit with `git add .` and `git commit`
     
 &ast; _If rebasing gets nasty, you can cherry-pick, but make a copy of your branch with first! To do this, branch off of master, then cherry-pick your commits from your feature branch._
-
+    
 ### Other things to consider
 
 #### Establishing some idea of what you want your commit history to look like
@@ -89,7 +113,28 @@ Here's an example of what such a sketch could look like:
     2. Create new data structures and methods for accessing them
     3. Update business logic to use new data structures
     4. Add tests
- 
+
+## Editing specific commits
+    
+Once feedback starts flowing, there's a good chance you'll want to edit specific commits. This is especially great for small changes that are unlikely to cause downstream conflicts like code comments, new tests, and slight modifications to variable names.
+
+One way to do this is to make your changes as normal, creating a new commit. Then you'll squash that new commit into a specific one in your history.
+
+First, make your changes as you would for any normal commit. Next find the hash of the commit that you need to change. You can use the GitHub UI or `git log --oneline master..`
+
+Add the changes to the staging area: `git add $some_file_name`
+
+Once in the staging area, use `git commit --fixup $some_commit_hash`. This will create a new commit that fixes up another one <TODO: check the git docs for a better description of this>
+    
+Since we have a new commit with the edits, we need to rebase so it gets applied to the original one.
+    
+At this point you may need to do a `git stash` to temporarily get any unstaged code out of the way. The working directory needs to be clean in order for a rebase to work.
+    
+Count the number of commits again: `git log --oneline master.. | wc -l`
+
+Rebase: `git rebase -i --autosquash HEAD~${number_of_commits}` This will open up an interactive rebase flow. The default settings should be good and you shouldn't need to do anything special here.
+    
+Lastly push up the changes with a `git push -f`!
     
 # Appendix
     
@@ -103,6 +148,25 @@ Here's an example of what such a sketch could look like:
 4. Count the number of commits: `git log --oneline | wc -l`
 5. Pop the commits off: `git reset HEAD~$number_of_commits`
 6. Flatten everything to one commit: `git add .` and `git commit`
+
+### Redoing commit history
+    
+First move all changes back to the working directory (if they are not already there):
+
+1. Count the number of commits: `git log --oneline master.. | wc -l`
+
+2. Pop the commits off: `git reset HEAD~$number_of_commits`
+
+Once everything is in the working directory,
+    
+1. `git diff` to view what needs to be committed
+
+2. `git add -p $some_file_name` to stage hunks of code
+
+3. `git diff --staged` then `git commit`
+    
+4. `git push -f`
+    
 
     
 ## Acknowledgements
