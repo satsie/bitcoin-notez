@@ -66,7 +66,7 @@ This moves everything back to the working directory. You can double check this w
 
 Next is the task of turning a giant diff into multiple commits. Most are familiar with the `git add <$filename>` command, where you can move entire files to the staging area. But what if you only want to stage parts of a file? Fear not, the hunk is here to help.
 
-![](https://github.com/satsie/bitcoin-notez/blob/master/bitcoin-core-development/images/fabio.jpg)
+![](https://github.com/satsie/bitcoin-notez/blob/master/bitcoin-core-development/images/fabio.jpeg)
 
 
 When used with the `-p` flag, `git add` will open up an interactive flow where it walks you through "hunks" of code from the file's diff (yes, you heard right, I said [hunks not chunks](https://git-scm.com/docs/git-add#Documentation/git-add.txt---patch)) and you can choose to move it to the staging area or not.
