@@ -1,6 +1,6 @@
 # Hunks not chunks!
 
-_A friendly guide to git for Bitcoin Core newcomers_
+_Notes on how Bitcoin Core is teaching me to use git in new and exciting ways_
 
 -------
 
@@ -12,7 +12,7 @@ Of course, this is far easier said than done, especially after multiple rounds o
 
 ### Helpful commands
 
-Below are some helpful commands common to Core dev workflows. Values that you need to change are written `$like_this_with_a_dollar_sign`.
+Below are some commands common to Core dev workflows. Values that you need to change are written `$like_this_with_a_dollar_sign`.
 
 To view the commits that are on your current branch, but not the master branch:
 
@@ -152,7 +152,9 @@ Lastly push up the changes with a `git push -f`!
 # Appendix
     
 ## Cheat Sheets
-    
+
+Handy little checklists that cover workflows described above!
+
 ### Creating a new branch to redo commit history on
 
 1. Use the UI to sync your fork with the upstream one
