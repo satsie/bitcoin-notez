@@ -8,51 +8,95 @@ It's no secret that Bitcoin Core has extremely high development standards, and g
 
 Of course, this is far easier said than done, especially after multiple rounds of feedback on a PR.
 
+This guide begins with some basics then takes a deep dive into a few advanced workflows. However, you can skip the note taking. At the end you'll find some checklists that summarize each of the workflows.
+
+Enjoy!
+
 # Basics
+
+### Rebasing
+
+At some point in a core dev's journey, they will need to master the art of the `rebase` command. While you don't need to know all the in's and out's from the beginning, it's helpful to have a basic idea of what the command does. 
+
+The most common need for a rebase arises when you are working on a feature branch while others are making updates to the master branch. Eventually you will want to merge your feature branch into master and it's good practice to identify and deal with any potential merge conflicts sooner than later. **When you rebase, you rewind all your work (your commits) and replay it on top of the latest copy of the master branch.** 
+
+The end result is similar to that of a merge, but things are much neater. All your commits stay grouped together and there are no merge commits that can often be confusing to parse through.
+
+<!-- TODO: Some diagrams would be nice here! -->
+
+However the `rebase` command can do a lot more! There are plenty of simple ways newcomers can use it to get a feel for things, without having to go through the full flow described above.
+
+For example, `rebase` can be used to edit commit messages, or it can be used to squash two commits into one. Let's see how you'd go about doing that!
+
+Imaging you have a branch with two commits. You will open up the interactive rebase flow with `git rebase -i` (the `-i` stands for 'interactive'), and you will use `HEAD~2` to specify that you want your rebase to apply to the last two commits.
+
+    git rebase -i HEAD~2
+
+From there, you will be shown a list of your two commits with the word `pick` in front of each. If you want to reword a commit message, change `pick` to `reword`. Similarly, if you want to squash a commit into the previous one, change `pick` to `squash`.
+
+<!-- TODO: a screencap of what this looks like -->
+
+Upon exiting this screen, git will guide you through the next steps. This can be an editor for you to change a commit message, or one where the messages from two commits are available for you to either merge or make changes to before squashing commits together.
+
+Lastly you'll want to push your changes, but you need to use the `-f` flag for this. It tells git to do a "force push" since rebasing changes the commit hashes. Only use `git push -f` if you have a full understanding of your changes, because once you do a force push, there's no going back!
+
+If you've never used `git rebase`, a great way to familiarize yourself and practice is by changing a commit message, or squashing a few commits. I strongly encourage readers to try this!
+
+Lastly, to learn more about rebasing, a good place to start is the [git docs](https://git-scm.com/docs/git-rebase).  
 
 ### Helpful commands
 
 Below are some commands common to Core dev workflows. Values that you need to change are written `$like_this_with_a_dollar_sign`.
 
-To view the commits that are on your current branch, but not the master branch:
-
+1. To view the commits that are on your current branch, but not (your copy of) the master branch:
+    ```
     git log --oneline master..
-
-You can then pipe this through `wc` to count the number of commits:
-
+    ```
+    
+2. You can then pipe through `wc` to count the number of commits:
+    ```
     git log --oneline master.. | wc -l
-
-To view all code that has been staged:
-
+    ```
+    
+3. To view all staged code:
+    ```
     git diff --staged
+    ```
     
-To create a patch from uncommitted changes (a good way to back up your code!):
+4. To create a patch from uncommitted changes:
 
+    _a good way to back up your code!_
+    ```
     git diff > my_patch_name.patch
-
-To stash changes in your working directory (this is helpful if you want to do some rebasing but are getting conflicts)
-
-    git stash
-
-To pop the stashed code back into the working directory
-
-    git stash pop
+    ```
     
-To force push (use this after rebases, ⚠️ but only if you know what you are doing! This can be a dangerous command ⚠️):
+5. To stash changes in your working directory (this is helpful if you want to do some rebasing but are getting conflicts)
+    ```
+    git stash
+    ```
 
+6. To pop the stashed code back into the working directory
+    ```
+    git stash pop
+    ```
+
+7. To force push:
+    
+    (use this after rebases, ⚠️ but only if you know what you are doing! This can be a dangerous command ⚠️):
+    ```
     git push -f
+    ```
 
 ### Links
 
-[Guidelines for how to format commit messages](https://github.com/bitcoin/bitcoin/blob/master/CONTRIBUTING.md#committing-patches) (from the Bitcoin Core Developer Docs)
+- [Guidelines for how to format commit messages](https://github.com/bitcoin/bitcoin/blob/master/CONTRIBUTING.md#committing-patches) (from the Bitcoin Core Developer Docs)
+    <!-- TODO: a TLDR; on this -->
 
 # Changing commit history
 
 From rewriting commit history, to making edits on specific commits, git makes it possible to change your commit history in ways you may not have thought were possible. 
 
 ## Completely redoing commit history
-
-### The process explained
 
 Once you've finished a feature, you'll probably want to go back and clean up the commit history. The naive way of doing this is to make a new branch off master and manually start copying code over, stopping frequently to make commits. While this is certainly one way to get the job done, learning just a few extra commands can make your life a lot easier. It not only reduces your chances of forgetting or dulicating code from the feature branch, but it  also builds a strong foundation for more advanced things you may want to do later, like making edits to particular commits. 
 
@@ -66,7 +110,7 @@ This moves everything back to the working directory. You can double check this w
 
 Next is the task of turning a giant diff into multiple commits. Most are familiar with the `git add <$filename>` command, where you can move entire files to the staging area. But what if you only want to stage parts of a file? Fear not, the hunk is here to help.
 
-![](https://github.com/satsie/bitcoin-notez/blob/master/bitcoin-core-development/images/fabio.jpeg)
+<p align="center"><img src="https://github.com/satsie/bitcoin-notez/blob/master/bitcoin-core-development/images/fabio.jpeg" width=50%></p>
 
 
 When used with the `-p` flag, `git add` will open up an interactive flow where it walks you through "hunks" of code from the file's diff (yes, you heard right, I said [hunks not chunks](https://git-scm.com/docs/git-add#Documentation/git-add.txt---patch)) and you can choose to move it to the staging area or not.
@@ -127,9 +171,7 @@ Here's an example of what such a sketch could look like:
     4. Add tests
 
 ## Editing specific commits
-    
-### The process explained
-    
+        
 Once feedback starts flowing, there's a good chance you'll want to edit specific commits. This is especially great for small changes that are unlikely to cause downstream conflicts like code comments, new tests, and slight modifications to variable names.
 
 One way to do this is to make your changes as normal, creating a new commit. Then you'll squash that new commit into a specific one in your history.
@@ -138,7 +180,7 @@ First, make your changes as you would for any normal commit. Next find the hash 
 
 Next add the changes to the staging area: `git add $some_file_name`
 
-Once all the changes have made it to the staging area, use `git commit --fixup $some_commit_hash`. This will create a new commit that fixes up another one <TODO: check the git docs for a better description of this>
+Once all the changes have made it to the staging area, use `git commit --fixup $some_commit_hash`. This will create a new commit that fixes up another one <!-- TODO: check the git docs for a better description of this -->
     
 Now we have a new commit with the edits, but we don't want it to be separate. We want it to be part of the original commit. To do that we need to rebase.
     
@@ -146,7 +188,7 @@ _Note: At this point you may need to do a `git stash` to temporarily get any uns
     
 Once again we need to count the number of commits, so we know how many commits back the rebase has to go: `git log --oneline master.. | wc -l`
 
-Then go ahead and run the rebase command: `git rebase -i --autosquash HEAD~${number_of_commits}` This will open up an interactive rebase flow. The default settings should be good and you shouldn't need to do anything special here. <TODO: explain autosquash>
+Then go ahead and run the rebase command: `git rebase -i --autosquash HEAD~${number_of_commits}` This will open up an interactive rebase flow. The default settings should be good and you shouldn't need to do anything special here. <!-- TODO: explain autosquash -->
     
 Lastly push up the changes with a `git push -f`!
     
