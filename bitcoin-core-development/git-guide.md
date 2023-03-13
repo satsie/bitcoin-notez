@@ -82,7 +82,7 @@ Below are some commands common to Core dev workflows. Values that you need to ch
 
 7. To force push:
     
-    (use this after rebases, ⚠️ but only if you know what you are doing! This can be a dangerous command ⚠️):
+    _(use this after rebases, ⚠️ but only if you know what you are doing! This can be a dangerous command ⚠️)_
     ```
     git push -f
     ```
@@ -200,12 +200,13 @@ Handy little checklists that cover workflows described above!
 
 ### Creating a new branch to redo commit history on
 
-1. Use the UI to sync your fork with the upstream one
-2. Rebase: `git rebase master`
-3. Make a new branch: `git checkout -b my_new_branch_name`
-4. Count the number of commits: `git log --oneline | wc -l`
-5. Pop the commits off: `git reset HEAD~$number_of_commits`
-6. Flatten everything to one commit: `git add .` and `git commit`
+1. Use the UI to sync your fork with the upstream one.
+2. Pull the results down locally:`git checkout master` and `git pull`
+3. Go back to your feature branch and rebase your changes on top the latest copy of master: `git checkout $my_feature_branch` and `git rebase master`
+4. Make a new branch: `git checkout -b my_new_branch_name`
+5. Count the number of commits: `git log --oneline | wc -l`
+6. Pop the commits off: `git reset HEAD~$number_of_commits`
+7. Flatten everything to one commit: `git add .` and `git commit`
 
 ### Redoing commit history
     
@@ -219,17 +220,17 @@ Once everything is in the working directory,
 1. `git diff` to view what needs to be committed
 2. `git add -p $some_file_name` to stage hunks of code
 3. `git diff --staged` then `git commit`
-4. `git push -f`
+4. After all the changes in the diff have been accounted for and put into commits, force push with `git push -f`
 
 ### Making edits to a specific commit
 
 1. Make your changes as normal and move them to the staging area (`git add .` / `git add $some_file_name` / `git add -p $some_file_name`).
 2. Find the hash of the commit you want to modify (use the GitHub UI / `git log --oneline master..` / or `git blame`)
-3. Double check everything that is in the staging area is correct `git diff --staged`
-4. Make a fixup commit: `git commit --fixup $some_commit_hash`
-5. [optional] Clear the working directory if needed: `git stash`
-6. Count the number of commits: `git log --oneline master.. | wc -l`
-7. Rebase: git rebase -i --autosquash HEAD~${number_of_commits}
+3. Double check everything in the staging area is correct `git diff --staged`
+4. Make a fixup commit for the specific commit you want to edit: `git commit --fixup $some_commit_hash`
+5. [optional] If there's anything still in the working directory, stash it: `git stash`
+6. Count the number of commits (should be one greater than what you began with): `git log --oneline master.. | wc -l`
+7. Rebase: `git rebase -i --autosquash HEAD~${number_of_commits}`
 8. Force push: `git push -f`
 9. [optional] Bring back any stashed changes: `git stash pop`
     
