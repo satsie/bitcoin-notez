@@ -62,8 +62,13 @@ Below are some commands common to Core dev workflows. Values that you need to ch
     ```
     git diff --staged
     ```
-    
-4. To create a patch from uncommitted changes:
+
+4. To unstage a file:
+    ```
+    git reset HEAD -- path/to/file
+    ```
+
+6. To create a patch from uncommitted changes:
 
     _a good way to back up your code!_
     ```
