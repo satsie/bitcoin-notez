@@ -209,7 +209,7 @@ Handy little checklists that cover workflows described above!
 2. Pull the results down locally:`git checkout master` and `git pull`
 3. Go back to your feature branch and rebase your changes on top the latest copy of master: `git checkout $my_feature_branch` and `git rebase master`
 4. Make a new branch: `git checkout -b my_new_branch_name`
-5. Count the number of commits: `git log --oneline | wc -l`
+5. Count the number of commits: `git log --oneline master.. | wc -l`
 6. Pop the commits off: `git reset HEAD~$number_of_commits`
 7. Flatten everything to one commit: `git add .` and `git commit`
 
