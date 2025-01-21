@@ -57,7 +57,12 @@ Below are some commands common to Core dev workflows. Values that you need to ch
     ```
     git log --oneline master.. | wc -l
     ```
-    
+
+3. To stage the deletion of a file, use the `-u` option which stands for "update"
+    ```
+    git add -u path/to/deleted/file
+    ```
+
 3. To view all staged code:
     ```
     git diff --staged
