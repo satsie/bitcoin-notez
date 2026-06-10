@@ -4,12 +4,18 @@
 
 AMI = Amazon virtual machine image. Snapshot of a virtual machine. Made with Packer.
 
+An AMI does not have an instance size attached to it. Packer uses a temporary EC2 instance to build the AMI and install things on it, but once the AMI is built, the EC2 instance is shut down. So if you see an instance size defined for the Packer step, it's only temporary. The larger the instance the faster it takes to build the AMI.
+
 `check-ami-changes`: If anything sensitive has changed, we build a new AMI
 
 The build artifact is an AMI. We spin new images up off this base image.
 
 `playbook-base.yaml`: All the stuff to build the AMI. Heavy stuff. Only runs once.
 `playbook-runtime.yaml`: What the AMI runs on startup (installs yarn dependencies, starts the Saving Satoshi backend server, etc.). All the lighter stuff.
+
+## terraform/templates/user-data.sh
+
+This is the shell script that the EC2 instance runs when it boots up which in turn runs Ansible. Some environment variables are set up here while some are fed in through Terraform.
 
 ## Autoscaling
 
